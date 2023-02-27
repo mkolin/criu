@@ -2643,6 +2643,111 @@ err:
 	return ret;
 }
 
+static int _mount_new_proc(void)
+{
+    if (mount(NULL, "/", NULL, MS_SLAVE | MS_REC, NULL))
+    {
+		set_cr_errno(errno);
+        return -1;
+    }
+    if (mount("proc", "/proc", "proc", 0, NULL))
+    {
+		set_cr_errno(errno);
+        return -1;
+    }
+    return 0;
+}
+
+static int _wait_for_process_status(pid_t pid)
+{
+    int status;
+    while (wait(&status) != pid) ;
+    return status;
+}
+
+static int cr_ns_restore_drop_command(char* arg)
+{
+    return strcmp(arg, "-d") == 0
+        || strcmp(arg, "--resture-sibling") == 0
+        || strcmp(arg, "-n") == 0
+        || strcmp(arg, "--namespaces") == 0;
+}
+
+static int count_args(int argc, char *args[])
+{
+    int count = 0;
+    while(args[++count]) ;
+    return count;
+}
+
+int cr_wrap_restore(int argc, char *argv[])
+{
+	int i, restore_i = 0;
+    char* restore_argv[count_args(argc, argv)];
+    pid_t criu_pid, parent_pid;
+
+
+    if (opts.restore_sibling) {
+        pr_err("--restore-sibling is not supported\n");
+        return -1;
+    }
+
+    i = 0;
+	while (argv[i]) {
+        if (!cr_ns_restore_drop_command(argv[i]))
+            restore_argv[restore_i++] = argv[i];
+        ++i;
+    }
+    restore_argv[restore_i] = NULL;
+
+    // Unshare pid and mount namespaces
+    if (unshare(CLONE_NEWNS | CLONE_NEWPID)) {
+        pr_err("unshare failed: %s\n", strerror(errno));
+		set_cr_errno(errno);
+        return -1;
+    }
+
+    parent_pid = getpid();
+    criu_pid = fork();
+    if (criu_pid == 0)
+    {
+        pr_err("Child PID is %d, Parent PID id %d\n", getpid(), parent_pid);
+        setsid();
+        // Set stdin tty to be a controlling tty of our new session, this is
+        // required by --shell-job option, as for it CRIU would try to set a
+        // process group of restored root task to be a foreground group on the
+        // terminal.
+        if (!opts.restore_detach && opts.shell_job)
+        {
+            if (isatty(fileno(stdin)))
+                ioctl(fileno(stdin), TIOCSCTTY, 1);
+            else
+            {
+                pr_err("The stdin is not a tty for a --shell-job\n");
+                set_cr_errno(EINVAL);
+                return -1;
+            }
+
+            if (_mount_new_proc())
+            {
+                pr_err("mount new proc failed %s\n", strerror(errno));
+                return -1;
+            }
+            if (execvp("criu", restore_argv))
+            {
+                pr_err("execvp criu failed: %s\n", strerror(errno));
+                set_cr_errno(errno);
+                return -1;
+            }
+        }
+    }
+
+    if (opts.restore_detach)
+        return 0;
+
+    return _wait_for_process_status(criu_pid);
+}
+
 static long restorer_get_vma_hint(struct list_head *tgt_vma_list, struct list_head *self_vma_list, long vma_len)
 {
 	struct vma_area *t_vma, *s_vma;

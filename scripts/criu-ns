@@ -73,6 +73,8 @@ def _wait_for_process_status(criu_pid):
                 return os.waitstatus_to_exitcode(status)
         except OSError:
             return -251
+        except AttributeError:
+            return -251
 
 
 def run_criu(args):
@@ -130,7 +132,7 @@ def wrap_restore():
         # required by --shell-job option, as for it CRIU would try to set a
         # process group of restored root task to be a foreground group on the
         # terminal.
-        if '--shell-job' in restore_args or '-j' in restore_args:
+        if not restore_detached and '--shell-job' in restore_args or '-j' in restore_args:
             if os.isatty(sys.stdin.fileno()):
                 fcntl.ioctl(sys.stdin.fileno(), termios.TIOCSCTTY, 1)
             else:

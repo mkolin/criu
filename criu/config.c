@@ -617,7 +617,7 @@ int parse_options(int argc, char **argv, bool *usage_error, bool *has_exec_cmd, 
 		"no-" OPT_NAME, no_argument, SAVE_TO, false \
 	}
 
-	static const char short_opts[] = "dSsRt:hD:o:v::x::Vr:jJ:lW:L:M:";
+	static const char short_opts[] = "dSsRt:hD:o:v::x::Vr:jJ:lW:L:M:n";
 	static struct option long_opts[] = {
 		{ "tree", required_argument, 0, 't' },
 		{ "leave-stopped", no_argument, 0, 's' },
@@ -703,6 +703,7 @@ int parse_options(int argc, char **argv, bool *usage_error, bool *has_exec_cmd, 
 		BOOL_OPT("mntns-compat-mode", &opts.mntns_compat_mode),
 		BOOL_OPT("unprivileged", &opts.unprivileged),
 		BOOL_OPT("ghost-fiemap", &opts.ghost_fiemap),
+		BOOL_OPT("namespaces", &opts.namespaces),
 		{},
 	};
 
@@ -811,6 +812,9 @@ int parse_options(int argc, char **argv, bool *usage_error, bool *has_exec_cmd, 
 					opts.log_level = atoi(optarg);
 			} else
 				opts.log_level++;
+			break;
+        case 'n':
+			opts.namespaces = true;
 			break;
 		case 1043: {
 			int fd;

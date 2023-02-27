@@ -1400,6 +1400,7 @@ static int kerndat_has_pidfd_getfd(void)
 	int fds[2];
 	int val_a, val_b;
 	int pidfd, stolen_fd;
+    pid_t pid;
 
 	ret = 0;
 
@@ -1416,9 +1417,10 @@ static int kerndat_has_pidfd_getfd(void)
 		goto close_pair;
 	}
 
-	pidfd = syscall(SYS_pidfd_open, getpid(), 0);
+    pid = getpid();
+	pidfd = syscall(SYS_pidfd_open, pid, 0);
 	if (pidfd == -1) {
-		pr_warn("Can't get pidfd\n");
+		pr_warn("Can't get pidfd %d\n", pid);
 		/*
 		 * If pidfd_open is not supported then pidfd_getfd
 		 * will not be supported as well.

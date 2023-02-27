@@ -186,6 +186,7 @@ struct cr_options {
 	char *work_dir;
 	int network_lock_method;
 	int skip_file_rwx_check;
+    int namespaces;
 
 	/*
 	 * When we scheduler for removal some functionality we first

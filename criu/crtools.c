@@ -305,6 +305,10 @@ int main(int argc, char *argv[], char *envp[])
 		if (opts.tree_id)
 			pr_warn("Using -t with criu restore is obsoleted\n");
 
+        if (opts.namespaces) {
+            return cr_wrap_restore(argc, argv);
+        }
+
 		ret = cr_restore_tasks();
 		if (ret == 0 && opts.exec_cmd) {
 			close_pid_proc();
@@ -395,6 +399,7 @@ usage:
 	       "  -S|--restore-sibling  restore root task as sibling\n"
 	       "  -s|--leave-stopped    leave tasks in stopped state after checkpoint\n"
 	       "  -R|--leave-running    leave tasks in running state after checkpoint\n"
+	       "  -n|--namespaces       dump or restore into a namespace (similar to criu-ns)\n"
 	       "  -D|--images-dir DIR   directory for image files\n"
 	       "     --pidfile FILE     write root task, service or page-server pid to FILE\n"
 	       "  -W|--work-dir DIR     directory to cd and write logs/pidfiles/stats to\n"
