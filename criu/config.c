@@ -704,6 +704,7 @@ int parse_options(int argc, char **argv, bool *usage_error, bool *has_exec_cmd, 
 		BOOL_OPT("unprivileged", &opts.unprivileged),
 		BOOL_OPT("ghost-fiemap", &opts.ghost_fiemap),
 		BOOL_OPT("namespaces", &opts.namespaces),
+		{ "namespaces-cmd", required_argument, 0, 1101 },
 		{},
 	};
 
@@ -1045,6 +1046,9 @@ int parse_options(int argc, char **argv, bool *usage_error, bool *has_exec_cmd, 
 				return 1;
 			}
 			break;
+        case 1101:
+			SET_CHAR_OPTS(namespaces_cmd, optarg);
+            break;
 		case 'V':
 			pr_msg("Version: %s\n", CRIU_VERSION);
 			if (strcmp(CRIU_GITID, "0"))

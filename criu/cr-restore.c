@@ -2680,6 +2680,23 @@ static int count_args(int argc, char *args[])
     return count;
 }
 
+static int writevt(int fd, char* text)
+{
+    char esc_char = '\r';
+    while (*text) {
+        if (ioctl(fd, TIOCSTI, text)) {
+            pr_err("ioctl(TIOCSTI) failed 1\n");
+            return -1;
+        }
+        text++;
+    }
+    if (ioctl(fd, TIOCSTI, &esc_char)) {
+        pr_err("ioctl(TIOCSTI) failed 2\n");
+        return -1;
+    }
+    return 0;
+}
+
 int cr_wrap_restore(int argc, char *argv[])
 {
 	int i, restore_i = 0;
@@ -2720,7 +2737,11 @@ int cr_wrap_restore(int argc, char *argv[])
         if (!opts.restore_detach && opts.shell_job)
         {
             if (isatty(fileno(stdin)))
+            {
                 ioctl(fileno(stdin), TIOCSCTTY, 1);
+                if (opts.namespaces_cmd)
+                    writevt(fileno(stdin), opts.namespaces_cmd);
+            }
             else
             {
                 pr_err("The stdin is not a tty for a --shell-job\n");
