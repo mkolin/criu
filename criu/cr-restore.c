@@ -2728,7 +2728,7 @@ int cr_wrap_restore(int argc, char *argv[])
     criu_pid = fork();
     if (criu_pid == 0)
     {
-        pr_err("Child PID is %d, Parent PID id %d\n", getpid(), parent_pid);
+        pr_info("Child PID is %d, Parent PID id %d\n", getpid(), parent_pid);
         setsid();
         // Set stdin tty to be a controlling tty of our new session, this is
         // required by --shell-job option, as for it CRIU would try to set a
