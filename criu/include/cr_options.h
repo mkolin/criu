@@ -89,7 +89,12 @@ enum FILE_VALIDATION_OPTIONS {
 	 * This constant indicates that the file validation should be tried with the
 	 * build-ID method by default.
 	 */
-	FILE_VALIDATION_BUILD_ID
+	FILE_VALIDATION_BUILD_ID,
+
+    /*
+     * No file validation
+     */
+    FILE_VALIDATION_OFF
 };
 
 /* This constant dictates which file validation method should be tried by default. */
@@ -213,6 +218,8 @@ struct cr_options {
 
 	/* This stores which method to use for file validation. */
 	int file_validation_method;
+	/* This stores files which will not get validated */
+	struct list_head file_validation_off_list;
 
 	/* Shows the mode criu is running at the moment: dump/pre-dump/restore/... */
 	enum criu_mode mode;

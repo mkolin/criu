@@ -10,6 +10,11 @@
 struct cr_imgset;
 struct fd_parms;
 
+struct file_validation_off {
+    struct list_head node;
+    char* file;
+};
+
 struct file_remap {
 	char *rpath;
 	bool is_dir;
@@ -60,5 +65,7 @@ extern int dead_pid_conflict(void);
 
 extern int rm_parent_dirs(int mntns_root, char *path, int count);
 extern int make_parent_dirs_if_need(int mntns_root, char *path);
+
+extern int add_file_validation_off(char* file);
 
 #endif /* __CR_FILES_REG_H__ */

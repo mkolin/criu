@@ -305,9 +305,8 @@ int main(int argc, char *argv[], char *envp[])
 		if (opts.tree_id)
 			pr_warn("Using -t with criu restore is obsoleted\n");
 
-        if (opts.namespaces) {
+        if (opts.namespaces)
             return cr_wrap_restore(argc, argv);
-        }
 
 		ret = cr_restore_tasks();
 		if (ret == 0 && opts.exec_cmd) {
@@ -514,7 +513,9 @@ usage:
 	       "			    user:PID,UID,GID\n"
 	       "  --file-validation METHOD\n"
 	       "			pass the validation method to be used; argument\n"
-	       "			can be 'filesize' or 'buildid' (default).\n"
+	       "			can be 'filesize', 'buildid' (default), or 'off'.\n"
+           "  --file-validation-exception FILE\n"
+           "            files that should not be validated\n"
 	       "  --skip-file-rwx-check\n"
 	       "			Skip checking file permissions\n"
 	       "			(r/w/x for u/g/o) on restore.\n"

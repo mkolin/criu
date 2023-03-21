@@ -2183,6 +2183,21 @@ static int validate_with_build_id(const int fd, const struct stat *fd_status, co
 	return 1;
 }
 
+int add_file_validation_off(char* file)
+{
+    struct file_validation_off *ext;
+    int file_size = strlen(file);
+
+    ext = xmalloc(sizeof(*ext));
+    if (!ext)
+        return -1;
+
+    ext->file = (char*)calloc(file_size, sizeof(char));
+    memcpy(ext->file, file, file_size);
+    list_add(&ext->node, &opts.file_validation_off_list);
+    return 0;
+}
+
 /*
  * This function determines whether it was the same file that was open during dump
  * by checking the file's size, build-id and/or checksum with the same metadata
@@ -2193,7 +2208,19 @@ static int validate_with_build_id(const int fd, const struct stat *fd_status, co
  */
 static bool validate_file(const int fd, const struct stat *fd_status, const struct reg_file_info *rfi)
 {
+    struct list_head *node;
 	int result = 1;
+
+	if (opts.file_validation_method == FILE_VALIDATION_OFF)
+        return true;
+
+    list_for_each(node, &opts.file_validation_off_list) {
+        pr_debug("Checking File %s against %s\n", rfi->path, ((struct file_validation_off*)node)->file);
+        if (strcmp(rfi->path, ((struct file_validation_off*)node)->file) == 0) {
+            pr_info("File %s will not be validated", rfi->path);
+            return true;
+        }
+    }
 
 	if (rfi->rfe->has_size && (fd_status->st_size != rfi->rfe->size)) {
 		pr_err("File %s has bad size %" PRIu64 " (expect %" PRIu64 ")\n", rfi->path, fd_status->st_size,

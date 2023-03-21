@@ -18,6 +18,7 @@
 #include "cr_options.h"
 #include "filesystems.h"
 #include "file-lock.h"
+#include "files-reg.h"
 #include "irmap.h"
 #include "mount.h"
 #include "mount-v2.h"
@@ -418,6 +419,7 @@ void init_opts(void)
 	INIT_LIST_HEAD(&opts.join_ns);
 	INIT_LIST_HEAD(&opts.new_cgroup_roots);
 	INIT_LIST_HEAD(&opts.irmap_scan_paths);
+    INIT_LIST_HEAD(&opts.file_validation_off_list);
 
 	opts.cpu_cap = CPU_CAP_DEFAULT;
 	opts.manage_cgroups = CG_MODE_DEFAULT;
@@ -582,6 +584,8 @@ static int parse_file_validation_method(struct cr_options *opts, const char *opt
 		opts->file_validation_method = FILE_VALIDATION_FILE_SIZE;
 	else if (!strcmp(optarg, "buildid"))
 		opts->file_validation_method = FILE_VALIDATION_BUILD_ID;
+    else if (!strcmp(optarg, "off"))
+        opts->file_validation_method = FILE_VALIDATION_OFF;
 	else
 		goto Esyntax;
 
@@ -704,7 +708,8 @@ int parse_options(int argc, char **argv, bool *usage_error, bool *has_exec_cmd, 
 		BOOL_OPT("unprivileged", &opts.unprivileged),
 		BOOL_OPT("ghost-fiemap", &opts.ghost_fiemap),
 		BOOL_OPT("namespaces", &opts.namespaces),
-		{ "namespaces-cmd", required_argument, 0, 1101 },
+		{ "namespaces-cmd", required_argument, 0, 3101 },
+		{ "file-validation-exception", required_argument, 0, 3102 },
 		{},
 	};
 
@@ -1046,8 +1051,11 @@ int parse_options(int argc, char **argv, bool *usage_error, bool *has_exec_cmd, 
 				return 1;
 			}
 			break;
-        case 1101:
+        case 3101:
 			SET_CHAR_OPTS(namespaces_cmd, optarg);
+            break;
+        case 3102:
+            add_file_validation_off(optarg);
             break;
 		case 'V':
 			pr_msg("Version: %s\n", CRIU_VERSION);
