@@ -1791,6 +1791,10 @@ long __export_restore_task(struct task_restore_args *args)
 	if (ret)
 		goto core_restore_end;
 
+	if (args->mm.mm_start_brk <= args->mm.mm_end_data)
+		args->mm.mm_start_data = args->mm.mm_end_data = args->mm.mm_start_brk - 1;
+
+
 	/*
 	 * New kernel interface with @PR_SET_MM_MAP will become
 	 * more widespread once kernel get deployed over the world.
