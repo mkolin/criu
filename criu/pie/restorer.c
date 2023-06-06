@@ -1862,6 +1862,7 @@ long __export_restore_task(struct task_restore_args *args)
 		sys_close(args->fd_exe_link);
 	}
 
+	ret = 0;
 	if (ret)
 		goto core_restore_end;
 
